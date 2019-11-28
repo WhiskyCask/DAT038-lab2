@@ -1,0 +1,140 @@
+
+
+/******************************************************************************
+ *  DAT038, TDA417  Datastrukturer och algoritmer, LP2 2019
+ *  Lab 2: Autocomplete
+ ******************************************************************************/
+
+Name of lab group: labgroup 49
+Group member A:    Oscar Liljenzin
+Group member B:    Jenny Lindewall
+
+
+/******************************************************************************
+ *  How many hours did you spend on the assignment?
+ *****************************************************************************/
+
+Group member A:    6h
+Group member B:    8h
+
+
+/******************************************************************************
+ *  Describe how your firstIndexOf() method in RangeBinarySearch.java
+ *  finds the first index of a key that equals the search key.
+ *****************************************************************************/
+
+public static <Key> int firstIndexOf(Key[] a, Key key, Comparator comparator) {
+    if (a == null) throw new NullPointerException();
+    if (key == null) throw new NullPointerException();
+    if (comparator == null) throw new NullPointerException();
+
+    int first = 0;
+    int last = a.length - 1;
+    int middle;
+    int result;
+
+    while (first < last) {                                      // While first index < last index
+        middle = (first + last) / 2;                            // Take the middle element as a guess
+        result = comparator.compare(a[middle], key);
+        if (result < 0) first = middle + 1;                     // If a[middle] < key move our left to the middle position + 1, this will eventually lead to first = last, and thus exiting the while loop
+        else last = middle;                                     // If a[middle] >= key move our right position to the middle
+    }
+
+    if (comparator.compare(a[first], key) == 0) return first;   // Check that a[first] == key, because key may not be inside a, and then we should return -1
+
+    return -1;
+}
+
+
+/******************************************************************************
+ *  What is the worst case time complexity in the number of compares
+ *  that each of the operations in the Autocomplete data type make,
+ *  as a function of the number of terms n and the number of matching terms m?
+ *
+ *  You can answer in O() notation, or in order-of-growth notation.
+ *  Recall that in both notations you should discard leading coefficients
+ *  and lower-order terms, e.g., m^2 + m log n.
+ *****************************************************************************/
+
+constructor:  O(nlogn)
+
+[short explanation]
+
+public Autocomplete(Term[] terms) {
+
+    this.terms = Arrays.copyOf(terms, terms.length);                                                            // O(n)
+    Arrays.sort(this.terms, Term.byLexicographicOrder());                                                       // O(nlogn)
+}
+
+Total: O(nlogn) + O(n) = O(nlogn)
+
+allMatches(): O(logn + mlogm)
+
+[short explanation]
+
+public Term[] allMatches(String prefix) {
+
+    Term prefixTerm = new Term(prefix, 0);
+
+    int firstindex = RangeBinarySearch.firstIndexOf(terms, prefixTerm, Term.byPrefixOrder(prefix.length()));    // O(logn + 1)
+
+    if (firstindex == -1) return new Term[0];
+
+    int lastindex = RangeBinarySearch.lastIndexOf(terms, prefixTerm, Term.byPrefixOrder(prefix.length()));      // O(logn + 1)
+
+    Term[] returnterms = Arrays.copyOfRange(terms, firstindex, lastindex + 1);                                  // O(m)
+
+    Arrays.sort(returnterms, Term.byReverseWeightOrder());                                                      // O(mlogm)
+}
+
+Total: 2 * O(logn + 1) + O(m) + O(mlogm) = O(logn) + O(mlogm) = O(logn + mlogm)
+
+numberOfMatches():   O(logn)
+
+[short explanation]
+
+public int numberOfMatches(String prefix) {
+
+    Term prefixTerm = new Term(prefix, 0);
+
+    int firstindex = RangeBinarySearch.firstIndexOf(terms, prefixTerm, Term.byPrefixOrder(prefix.length()));    // O(logn + 1)
+
+    if (firstindex == -1) return 0;
+
+    int lastindex = RangeBinarySearch.lastIndexOf(terms, prefixTerm, Term.byPrefixOrder(prefix.length()));      // O(logn + 1)
+
+    return (lastindex + 1) - firstindex;
+}
+
+Total: 2 * O(logn + 1) = O(logn)
+
+/******************************************************************************
+ *  Are there any known bugs / limitations?
+ *****************************************************************************/
+
+Not to our knowledge, this program can handle empty inputs and inputs with uncommon letters like Ф, #, and Ж.
+
+/******************************************************************************
+ *  Did you collaborate with any other students on this lab?
+ *  If so, please write in what way you collaborated and with whom.
+ *  Also include any resources (including the web) that you may
+ *  may have used in creating your design.
+ *****************************************************************************/
+
+No, a collaboration with other students did not occur.
+A link to java docs for how to implement compareTo for public static Comparator<Term> byPrefixOrder(int k) and what the method should return:
+https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html#compareTo(java.lang.String)
+
+/******************************************************************************
+ *  Describe any serious problems you encountered.                    
+ *****************************************************************************/
+
+The first implementation of Comparator<Term> byPrefixOrder(int k) didn't account for terms with a length less than k which caused the program to give an exception, although this was an easy fix.
+
+/******************************************************************************
+ *  List any other comments here. Feel free to provide any feedback   
+ *  on how much you learned from doing the assignment, and whether    
+ *  you enjoyed doing it.                                             
+ *****************************************************************************/
+
+This lab was good in illustrating how you can solve a real world problem in a good way by choosing the right data structures and algorithms.
